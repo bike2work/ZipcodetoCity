@@ -1,0 +1,25 @@
+function translate() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sheet = ss.getSheetByName("zipcode");
+  var startRow = 1;  // First row of data to process
+  var dataRange = sheet.getDataRange(); // Fetch the all range
+  var data = dataRange.getValues(); // Fetch values for each row in the Range.
+  for (var i = 1; i < data.length; i++) {
+    var row = data[i];
+    var zipcode = row[0];
+    var url = 'http://www.geonames.org/postalCodeLookupJSON?postalcode='+zipcode+'&country=US';
+    var response = UrlFetchApp.fetch(url);
+    var json = response.getContentText();
+    var info = JSON.parse(json);
+    if(row[0] > 0 && info['postalcodes'][0]!=null){
+      sheet.getRange(startRow + i, 2).setValue(info['postalcodes'][0]['placeName']);
+      sheet.getRange(startRow + i, 3).setValue(info['postalcodes'][0]['adminName2']);
+      sheet.getRange(startRow + i, 4).setValue(info['postalcodes'][0]['adminName1']);
+      sheet.getRange(startRow + i, 5).setValue(info['postalcodes'][0]['adminCode1']);
+    }
+    else{
+      sheet.getRange(startRow + i, 2).setValue('Wrong Zipcode');
+      sheet.getRange(startRow + i, 1).setBackground('red');
+    }
+  }  
+}
